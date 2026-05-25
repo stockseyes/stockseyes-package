@@ -1,0 +1,66 @@
+{
+  "name": "@stockseyes/stockseyes-package",
+  "version": "1.0.0",
+  "description": "Stockseyes package for financial data analysis and visualization",
+  "author": "Tushar Singhal",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "typings": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest",
+    "lint": "eslint src",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "type-check": "tsc --noEmit",
+    "prepare": "npm run build",
+    "size": "size-limit",
+    "analyze": "size-limit --why",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\""
+  },
+  "peerDependencies": {},
+  "devDependencies": {
+    "@size-limit/preset-small-lib": "^11.1.4",
+    "@typescript-eslint/eslint-plugin": "^7.10.0",
+    "@typescript-eslint/parser": "^7.10.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.2",
+    "size-limit": "^11.1.4",
+    "@size-limit/esbuild-why": "^11.1.4",
+    "terser": "^5.31.1",
+    "tsup": "^8.1.0",
+    "tslib": "^2.6.3",
+    "typescript": "^5.5.2",
+    "vitest": "^1.6.0"
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "size-limit": [
+    {
+      "path": "dist/index.js",
+      "limit": "10 KB"
+    },
+    {
+      "path": "dist/index.mjs",
+      "limit": "10 KB"
+    }
+  ]
+}
