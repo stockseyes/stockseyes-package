@@ -9,3 +9,6 @@ npm-debug.log*
 .idea
 coverage
 .nyc_output
+
+# Claude Code local settings (skills + CLAUDE.md stay tracked)
+.claude/settings.local.json
