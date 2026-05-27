@@ -1,0 +1,33 @@
+{
+  "instruments": [
+    {
+      "instrument_token": 738561,
+      "exchange_token": "2885",
+      "tradingsymbol": "RELIANCE",
+      "name": "RELIANCE INDUSTRIES LTD",
+      "last_price": "2954.25",
+      "expiry": "",
+      "strike": "0",
+      "tick_size": "0.05",
+      "lot_size": "1",
+      "instrument_type": "EQ",
+      "segment": "NSE",
+      "exchange": "NSE"
+    },
+    {
+      "instrument_token": 340481,
+      "exchange_token": "1330",
+      "tradingsymbol": "RELINFRA",
+      "name": "RELIANCE INFRASTRUCTU LTD",
+      "last_price": "295.4",
+      "expiry": "",
+      "strike": "0",
+      "tick_size": "0.05",
+      "lot_size": "1",
+      "instrument_type": "EQ",
+      "segment": "NSE",
+      "exchange": "NSE"
+    }
+  ],
+  "totalCount": 2
+}

@@ -1,0 +1,19 @@
+{
+  "query": "REL",
+  "results": [
+    {
+      "symbol": "RELIANCE",
+      "name": "RELIANCE INDUSTRIES LTD",
+      "exchange": "NSE",
+      "type": "stock",
+      "currency": "INR"
+    },
+    {
+      "symbol": "RELINFRA",
+      "name": "RELIANCE INFRASTRUCTU LTD",
+      "exchange": "NSE",
+      "type": "stock",
+      "currency": "INR"
+    }
+  ]
+}

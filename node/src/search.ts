@@ -7,7 +7,7 @@ function normalizeType(raw: string = ''): Instrument['type'] {
   return 'unknown';
 }
 
-function normalizeInstrument(raw: RawInstrument): Instrument {
+export function normalizeInstrument(raw: RawInstrument): Instrument {
   return {
     symbol:   raw.tradingsymbol,
     name:     raw.name,

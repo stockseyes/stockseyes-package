@@ -1,4 +1,4 @@
-name: Publish Package
+name: Publish @stockseyes/node
 
 on:
   workflow_dispatch:
@@ -13,13 +13,16 @@ on:
           - minor
           - major
 
+defaults:
+  run:
+    working-directory: node
+
 jobs:
   publish:
     runs-on: ubuntu-latest
 
     permissions:
       contents: write
-      packages: write
 
     steps:
       - name: Checkout repository
@@ -32,13 +35,16 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org/
+          cache: 'npm'
+          cache-dependency-path: node/package-lock.json
 
       - name: Configure git
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
+
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Bump version
         run: npm version ${{ github.event.inputs.version }} --no-git-tag-version
@@ -55,7 +61,7 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           git add package.json package-lock.json
-          git commit -m "chore: bump version to v$VERSION"
-          git tag "v$VERSION"
+          git commit -m "chore(node): release @stockseyes/node v$VERSION"
+          git tag "node-v$VERSION"
           git push
           git push --tags

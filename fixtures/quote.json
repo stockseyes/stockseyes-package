@@ -1,0 +1,16 @@
+{
+  "tradingSymbol": "RELIANCE",
+  "exchange": "NSE",
+  "lastPrice": 2954.25,
+  "change": 29.25,
+  "ohlc": { "open": 2930.0, "high": 2960.0, "low": 2920.0, "close": 2925.0 },
+  "volumeTradedToday": 5839201,
+  "timestamp": "2026-05-27T10:15:00.000Z",
+  "marketCapInCrores": 1995432.5,
+  "lastTradedTime": "2026-05-27T10:14:58.000Z",
+  "instrumentToken": 738561,
+  "averagePrice": 2948.1,
+  "buyQuantity": 12000,
+  "sellQuantity": 9000,
+  "error": null
+}

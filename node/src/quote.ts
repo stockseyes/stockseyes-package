@@ -2,7 +2,7 @@ import { httpGet } from './http';
 import { HttpConfig, Quote, RawQuote } from './types';
 
 
-function normalize(raw: RawQuote): Quote {
+export function normalize(raw: RawQuote): Quote {
   const changePercent = raw.ohlc.close !== 0 
     ? (raw.change / raw.ohlc.close) * 100 
     : 0;
@@ -25,7 +25,10 @@ function normalize(raw: RawQuote): Quote {
 }
 
 export async function getQuote(config: HttpConfig, symbol: string, exchange: string): Promise<Quote> {
-  const raw = await httpGet<RawQuote>(config, `/rapidapi/stock/quote?tradingSymbol=${symbol}&exchange=${exchange}`);
+  const raw = await httpGet<RawQuote>(config, '/rapidapi/stock/quote', {
+    tradingSymbol: symbol,
+    exchange,
+  });
   return normalize(raw);
 }
 
