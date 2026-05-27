@@ -1,0 +1,41 @@
+name: spec & fixtures contract
+
+# Not language-filtered: the spec + fixtures are the cross-SDK source of truth.
+on:
+  push:
+    paths:
+      - 'spec/**'
+      - 'fixtures/**'
+      - 'scripts/**'
+      - 'package.json'
+      - '.github/workflows/spec.yml'
+  pull_request:
+    paths:
+      - 'spec/**'
+      - 'fixtures/**'
+      - 'scripts/**'
+      - 'package.json'
+      - '.github/workflows/spec.yml'
+
+# TODO: add python.yml (paths: python/**) when the Python SDK lands.
+
+jobs:
+  contract:
+    name: Validate OpenAPI spec & fixtures
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install tooling
+        run: npm ci
+
+      - name: Check contract (spec schemas + fixtures)
+        run: npm run check:contract

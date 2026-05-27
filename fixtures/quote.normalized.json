@@ -1,0 +1,15 @@
+{
+  "symbol": "RELIANCE",
+  "name": "RELIANCE",
+  "price": 2954.25,
+  "change": 29.25,
+  "changePercent": 1,
+  "open": 2930.0,
+  "high": 2960.0,
+  "low": 2920.0,
+  "volume": 5839201,
+  "marketCap": 1995432.5,
+  "timestamp": "2026-05-27T10:15:00.000Z",
+  "currency": "INR",
+  "exchange": "NSE"
+}

@@ -1,10 +1,26 @@
-
-
 export interface StockEyesConfig {
+  /** RapidAPI key, sent as the `x-rapidapi-key` header. Required. */
   apiKey: string;
+  /** Bare RapidAPI host (domain only, no path). Sent as the `x-rapidapi-host` header. */
   host?: string;
+  /** Full base URL for requests. Defaults to `https://<host>/v1`. Override to point at a proxy. */
+  baseUrl?: string;
+  /** Per-request timeout in milliseconds. Defaults to 10000. */
+  timeoutMs?: number;
 }
 
+/** Internal, fully-resolved request configuration. */
+export interface HttpConfig {
+  apiKey: string;
+  host: string;
+  baseURL: string;
+  timeoutMs: number;
+}
+
+export interface SearchOptions {
+  limit?: number;
+  offset?: number;
+}
 
 export interface Quote {
   symbol: string;
@@ -22,7 +38,6 @@ export interface Quote {
   exchange: string;
 }
 
-
 export interface Instrument {
   symbol: string;
   name: string;
@@ -36,49 +51,9 @@ export interface SearchResult {
   results: Instrument[];
 }
 
-
-
-export type Interval = '1m' | '5m' | '15m' | '30m' | '1h' | '1d' | '1wk' | '1mo';
-export type Period   = '1d' | '5d' | '1mo' | '3mo' | '6mo' | '1y' | '2y' | '5y' | 'max';
-
-export interface HistoricalOptions {
-  period?: Period;
-  interval?: Interval;
-  from?: string; 
-  to?: string;
-}
-
-export interface OHLCV {
-  date: Date;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume: number;
-  adjClose?: number;
-}
-
-export interface HistoricalData {
-  symbol: string;
-  interval: Interval;
-  period: Period | 'custom';
-  candles: OHLCV[];
-}
-
-
 export type BatchQuoteResult = Record<string, Quote | { error: string }>;
 
-
-export interface HttpConfig {
-  apiKey: string;
-  host: string;
-  baseURL: string;
-}
-
-export interface SearchOptions {
-  limit?: number;
-  offset?: number;
-}
+// ---- Raw upstream (RapidAPI) response shapes ----
 
 export interface RawInstrument {
   instrument_token: number;
@@ -125,5 +100,3 @@ export interface RawQuote {
   depth?: Record<string, unknown>;
   error?: string | null;
 }
-
-

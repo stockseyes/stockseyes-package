@@ -1,0 +1,231 @@
+openapi: 3.1.0
+info:
+  title: Stockseyes API
+  version: 1.0.0
+  description: >
+    Source-of-truth contract for every Stockseyes SDK (Node, React, Python, …).
+    It describes the upstream RapidAPI endpoints (raw "wire" responses) **and** the
+    normalized shapes that every SDK must produce identically. Shared `fixtures/` are
+    validated against these schemas in CI to prevent cross-language drift.
+
+
+    Note: a historical-candles endpoint is planned but not yet implemented, so it is
+    intentionally omitted from this spec.
+  license:
+    name: MIT
+servers:
+  - url: https://{host}/v1
+    description: Stockseyes on RapidAPI
+    variables:
+      host:
+        default: indian-stock-market-data-nse-bse-bcd-mcx-cds-nfo.p.rapidapi.com
+
+security:
+  - rapidApiKey: []
+    rapidApiHost: []
+
+paths:
+  /rapidapi/stock/quote:
+    get:
+      operationId: getQuote
+      summary: Get a real-time quote for a single instrument.
+      parameters:
+        - name: tradingSymbol
+          in: query
+          required: true
+          schema: { type: string }
+          example: RELIANCE
+        - name: exchange
+          in: query
+          required: false
+          schema: { type: string, default: NSE }
+          example: NSE
+      responses:
+        '200':
+          description: Raw quote payload.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RawQuote' }
+
+  /public/instruments/search:
+    post:
+      operationId: searchInstruments
+      summary: Search instruments by trading symbol.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SearchRequest' }
+      responses:
+        '200':
+          description: Raw search results.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RawSearchResponse' }
+
+components:
+  securitySchemes:
+    rapidApiKey:
+      type: apiKey
+      in: header
+      name: x-rapidapi-key
+    rapidApiHost:
+      type: apiKey
+      in: header
+      name: x-rapidapi-host
+
+  schemas:
+    # ---------- Raw (upstream wire) shapes ----------
+    RawOHLC:
+      type: object
+      required: [open, high, low, close]
+      properties:
+        open: { type: number }
+        high: { type: number }
+        low: { type: number }
+        close: { type: number }
+
+    RawQuote:
+      type: object
+      required:
+        - tradingSymbol
+        - exchange
+        - lastPrice
+        - change
+        - ohlc
+        - volumeTradedToday
+        - timestamp
+        - marketCapInCrores
+      properties:
+        tradingSymbol: { type: string }
+        exchange: { type: string }
+        lastPrice: { type: number }
+        change: { type: number }
+        ohlc: { $ref: '#/components/schemas/RawOHLC' }
+        volumeTradedToday: { type: number }
+        timestamp: { type: string, format: date-time }
+        marketCapInCrores: { type: [number, 'null'] }
+        lowerCircuitLimit: { type: number }
+        upperCircuitLimit: { type: number }
+        lastTradedTime: { type: string }
+        instrumentToken: { type: number }
+        oi: { type: number }
+        averagePrice: { type: number }
+        buyQuantity: { type: number }
+        sellQuantity: { type: number }
+        depth: { type: object, additionalProperties: true }
+        error: { type: [string, 'null'] }
+
+    RawInstrument:
+      type: object
+      required:
+        - instrument_token
+        - exchange_token
+        - tradingsymbol
+        - name
+        - last_price
+        - expiry
+        - strike
+        - tick_size
+        - lot_size
+        - instrument_type
+        - segment
+        - exchange
+      properties:
+        instrument_token: { type: number }
+        exchange_token: { type: string }
+        tradingsymbol: { type: string }
+        name: { type: string }
+        last_price: { type: string }
+        expiry: { type: string }
+        strike: { type: string }
+        tick_size: { type: string }
+        lot_size: { type: string }
+        instrument_type: { type: string }
+        segment: { type: string }
+        exchange: { type: string }
+
+    RawSearchResponse:
+      type: object
+      required: [instruments, totalCount]
+      properties:
+        instruments:
+          type: array
+          items: { $ref: '#/components/schemas/RawInstrument' }
+        totalCount: { type: number }
+
+    SearchRequest:
+      type: object
+      required: [filterRequest, searchPatterns, paginationDetails]
+      properties:
+        filterRequest:
+          type: object
+          properties:
+            exchange: { type: array, items: { type: string } }
+            instrument_type: { type: array, items: { type: string } }
+            segment: { type: array, items: { type: string } }
+        searchPatterns:
+          type: object
+          properties:
+            tradingsymbol: { type: string }
+        paginationDetails:
+          type: object
+          properties:
+            limit: { type: number }
+            offset: { type: number }
+
+    # ---------- Normalized (SDK) shapes — the cross-language contract ----------
+    Quote:
+      type: object
+      additionalProperties: false
+      required:
+        - symbol
+        - name
+        - price
+        - change
+        - changePercent
+        - open
+        - high
+        - low
+        - volume
+        - marketCap
+        - timestamp
+        - currency
+        - exchange
+      properties:
+        symbol: { type: string }
+        name: { type: string }
+        price: { type: number }
+        change: { type: number }
+        changePercent: { type: number }
+        open: { type: number }
+        high: { type: number }
+        low: { type: number }
+        volume: { type: number }
+        marketCap: { type: [number, 'null'] }
+        timestamp: { type: string, format: date-time }
+        currency: { type: string }
+        exchange: { type: string }
+
+    Instrument:
+      type: object
+      additionalProperties: false
+      required: [symbol, name, exchange, type, currency]
+      properties:
+        symbol: { type: string }
+        name: { type: string }
+        exchange: { type: string }
+        type:
+          type: string
+          enum: [stock, etf, index, crypto, forex, unknown]
+        currency: { type: string }
+
+    SearchResult:
+      type: object
+      additionalProperties: false
+      required: [query, results]
+      properties:
+        query: { type: string }
+        results:
+          type: array
+          items: { $ref: '#/components/schemas/Instrument' }
