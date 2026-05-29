@@ -10,5 +10,14 @@ npm-debug.log*
 coverage
 .nyc_output
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+
 # Claude Code local settings (skills + CLAUDE.md stay tracked)
 .claude/settings.local.json
