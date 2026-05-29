@@ -6,6 +6,7 @@ it directly against the shared fixtures.
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 
 from ._http import http_get
@@ -22,11 +23,11 @@ def normalize_quote(raw: RawQuote) -> Quote:
     close = raw["ohlc"]["close"]
     change_percent = (raw["change"] / close) * 100 if close != 0 else 0.0
 
-    # Parse ISO-8601 timestamp — handle both 'Z' suffix and '+00:00'
+    # Parse ISO-8601 timestamp — handle both 'Z' suffix and any offset; convert to UTC.
     ts_str = raw["timestamp"]
     if ts_str.endswith("Z"):
         ts_str = ts_str[:-1] + "+00:00"
-    timestamp = datetime.fromisoformat(ts_str).replace(tzinfo=timezone.utc)
+    timestamp = datetime.fromisoformat(ts_str).astimezone(timezone.utc)
 
     return Quote(
         symbol=raw["tradingSymbol"],
@@ -60,14 +61,25 @@ def batch_quote(
     symbols: list[str],
     exchange: str = "NSE",
 ) -> dict[str, Quote | dict[str, str]]:
-    """Fetch quotes for multiple symbols; per-symbol failures are returned, not raised."""
-    unique = list(dict.fromkeys(s.upper() for s in symbols))
-    result: dict[str, Quote | dict[str, str]] = {}
+    """Fetch quotes for multiple symbols in parallel; per-symbol failures are returned, not raised.
 
-    for symbol in unique:
+    Mirrors the Node SDK's ``Promise.allSettled`` parallelism via a stdlib
+    ``ThreadPoolExecutor`` — worker count is capped at 10 to avoid hammering
+    upstream when callers pass a large list.
+    """
+    unique = list(dict.fromkeys(s.upper() for s in symbols))
+    if not unique:
+        return {}
+
+    def fetch(symbol: str) -> tuple[str, Quote | dict[str, str]]:
         try:
-            result[symbol] = get_quote(config, symbol, exchange)
+            return symbol, get_quote(config, symbol, exchange)
         except Exception as exc:
-            result[symbol] = {"error": str(exc)}
+            return symbol, {"error": str(exc)}
+
+    result: dict[str, Quote | dict[str, str]] = {}
+    with ThreadPoolExecutor(max_workers=min(len(unique), 10)) as pool:
+        for symbol, value in pool.map(fetch, unique):
+            result[symbol] = value
 
     return result

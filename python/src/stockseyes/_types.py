@@ -11,7 +11,7 @@ JSON payloads and are kept separate so normalisation logic is explicit.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Literal, TypedDict
 
 
@@ -80,9 +80,16 @@ class Quote:
     exchange: str
 
     def to_dict(self) -> dict[str, Any]:
-        """Serialise to a plain dict (ISO-8601 timestamp string)."""
+        """Serialise to a plain dict (ISO-8601 UTC timestamp string)."""
+        # Convert to UTC first so the trailing "Z" is always accurate, even if a
+        # caller built the Quote with an aware datetime in another timezone.
+        # Naive datetimes are assumed UTC (matches the prior behaviour).
+        if self.timestamp.tzinfo is None:
+            ts_utc = self.timestamp.replace(tzinfo=timezone.utc)
+        else:
+            ts_utc = self.timestamp.astimezone(timezone.utc)
         # Use strftime to always include milliseconds, matching JS toISOString().
-        ts = self.timestamp.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+        ts = ts_utc.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
         return {
             "symbol": self.symbol,
             "name": self.name,
