@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "stockseyes"
-version = "0.1.0"
+version = "0.2.0"
 description = "Official Stockseyes SDK for Python — real-time Indian stock market (NSE/BSE) quotes, instrument search, and market data via RapidAPI."
 readme = "README.md"
 license = "MIT"
