@@ -7,11 +7,16 @@ normaliser, and verify the output matches the ``*.normalized.json`` fixture.
 from __future__ import annotations
 
 import math
+import time
+from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 
-from stockseyes._quote import normalize_quote
+import pytest
+
+from stockseyes import _quote as quote_module
+from stockseyes._quote import batch_quote, normalize_quote
 from stockseyes._search import normalize_instrument
-from stockseyes._types import RawQuote, RawSearchResponse
+from stockseyes._types import HttpConfig, Quote, RawQuote, RawSearchResponse
 
 
 
@@ -58,6 +63,87 @@ class TestNormalizeQuote:
         q = normalize_quote(raw)
 
         assert q.change_percent == 0.0
+
+    def test_converts_non_utc_offset_to_utc(
+        self, load_fixture: Callable[[str], Any]
+    ) -> None:
+        """A raw timestamp with a non-Z offset is converted to UTC, not relabelled."""
+        raw: RawQuote = load_fixture("quote.json")
+        # 15:45 IST (+05:30) is exactly the 10:15 UTC the fixture already encodes.
+        raw["timestamp"] = "2026-05-27T15:45:00.000+05:30"
+
+        q = normalize_quote(raw)
+
+        assert q.timestamp.tzinfo is not None
+        assert q.timestamp == datetime(2026, 5, 27, 10, 15, 0, tzinfo=timezone.utc)
+        assert q.to_dict()["timestamp"] == "2026-05-27T10:15:00.000Z"
+
+    def test_to_dict_with_non_utc_constructed_quote(self) -> None:
+        """A user-built Quote with a non-UTC datetime serialises to UTC."""
+        ist = timezone(timedelta(hours=5, minutes=30))
+        q = Quote(
+            symbol="RELIANCE",
+            name="RELIANCE",
+            price=2954.25,
+            change=29.25,
+            change_percent=1.0,
+            open=2930.0,
+            high=2960.0,
+            low=2920.0,
+            volume=5839201,
+            market_cap=1995432.5,
+            timestamp=datetime(2026, 5, 27, 15, 45, 0, tzinfo=ist),
+            currency="INR",
+            exchange="NSE",
+        )
+
+        assert q.to_dict()["timestamp"] == "2026-05-27T10:15:00.000Z"
+
+
+# -- batch_quote parallelism ----------------------------------------------
+
+class TestBatchQuoteParallelism:
+    """batch_quote must fan out concurrently to match the Node SDK."""
+
+    def test_runs_in_parallel(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        delay = 0.2
+        symbols = ["A", "B", "C", "D", "E"]
+
+        def slow_get_quote(
+            config: HttpConfig, symbol: str, exchange: str = "NSE"
+        ) -> Quote:
+            time.sleep(delay)
+            return Quote(
+                symbol=symbol,
+                name=symbol,
+                price=1.0,
+                change=0.0,
+                change_percent=0.0,
+                open=1.0,
+                high=1.0,
+                low=1.0,
+                volume=0,
+                market_cap=None,
+                timestamp=datetime(2026, 5, 27, 10, 15, 0, tzinfo=timezone.utc),
+                currency="INR",
+                exchange="NSE",
+            )
+
+        monkeypatch.setattr(quote_module, "get_quote", slow_get_quote)
+
+        config = HttpConfig(
+            api_key="k", host="h", base_url="https://h/v1", timeout_s=5.0
+        )
+        start = time.monotonic()
+        result = batch_quote(config, symbols)
+        elapsed = time.monotonic() - start
+
+        assert set(result.keys()) == set(symbols)
+        # Sequential would take ~5 * delay = 1.0s; parallel should be ~delay.
+        # Allow generous headroom for CI scheduling jitter.
+        assert elapsed < delay * len(symbols) * 0.6, (
+            f"batch_quote took {elapsed:.2f}s — likely running sequentially"
+        )
 
 
 # -- Search / instrument normalisation ------------------------------------
