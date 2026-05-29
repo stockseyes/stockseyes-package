@@ -1,6 +1,6 @@
 {
   "name": "@stockseyes/node",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Official Stockseyes SDK for Node.js — real-time Indian stock market (NSE/BSE) quotes, instrument search, and market data via RapidAPI.",
   "author": "Tushar Singhal",
   "license": "MIT",
