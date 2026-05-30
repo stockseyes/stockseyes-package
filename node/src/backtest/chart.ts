@@ -206,6 +206,31 @@ export async function generateBacktestChart(
       equityPoints: equityCurveData.length,
       pricePoints: priceChartData.length,
     });
+
+    /*
+     * TODO: Future raw data payload format for custom React dashboard integrations:
+     * 
+     * 1. KPI Metrics (For Stat Cards/Dashboards)
+     *    - totalReturn (number)
+     *    - winRate (number)
+     *    - maxDrawdown (number)
+     *    - sharpeRatio (number)
+     *    - profitFactor (number)
+     *    - totalTrades (number)
+     * 
+     * 2. Drawdown Curve (Area/Bar Chart - shows risk/drawdowns over time):
+     *    drawdownCurve: [
+     *      { date: "2025-05-26", drawdown: 0 },
+     *      { date: "2025-06-02", drawdown: -1.2 },
+     *      { date: "2025-06-03", drawdown: -2.5 }
+     *    ]
+     * 
+     * 3. Trade Markers (Scatter Plot/Icon overlays)
+     *    markers: [
+     *      { date: "2025-06-02", price: 2540, type: "BUY", label: "L" },   // L = Long Entry
+     *      { date: "2026-03-15", price: 2820, type: "SELL", label: "LE" }  // LE = Long Exit
+     *    ]
+     */
   </script>
 </body>
 </html>`;
