@@ -1,0 +1,42 @@
+name: Kotlin CI
+
+on:
+  push:
+    paths:
+      - 'kotlin/**'
+      - '.github/workflows/kotlin.yml'
+  pull_request:
+    paths:
+      - 'kotlin/**'
+      - '.github/workflows/kotlin.yml'
+
+defaults:
+  run:
+    working-directory: kotlin
+
+jobs:
+  build:
+    name: Test — JDK ${{ matrix.java }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        java: ['11', '17', '21']
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'zulu'
+
+      - name: Make gradlew executable
+        if: runner.os != 'Windows'
+        run: chmod +x gradlew
+
+      - name: Build and run tests
+        run: ./gradlew test
