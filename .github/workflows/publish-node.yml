@@ -21,8 +21,12 @@ jobs:
   publish:
     runs-on: ubuntu-latest
 
+    outputs:
+      commit_sha: ${{ steps.push-changes.outputs.sha }}
+
     permissions:
       contents: write
+      packages: write
 
     steps:
       - name: Checkout repository
@@ -52,12 +56,20 @@ jobs:
       - name: Build package
         run: npm run build
 
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-dist
+          path: node/dist
+          retention-days: 1
+
       - name: Publish package
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_STOCKSEYES_PACKAGE }}
 
       - name: Commit, tag, and push
+        id: push-changes
         run: |
           VERSION=$(node -p "require('./package.json').version")
           git add package.json package-lock.json
@@ -65,3 +77,51 @@ jobs:
           git tag "node-v$VERSION"
           git push
           git push --tags
+          echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+  publish-gpr:
+    name: Publish to GitHub Packages
+    needs: publish
+    runs-on: ubuntu-latest
+
+    permissions:
+      packages: write
+      contents: read
+
+    defaults:
+      run:
+        working-directory: node
+
+    steps:
+      - name: Checkout repository (at version-bumped commit)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.publish.outputs.commit_sha }}
+
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: node-dist
+          path: node/dist
+
+      - name: Setup Node.js for GPR
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com/
+
+      - name: Rewrite package for GitHub Packages
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+            pkg.name = '@srijantrivedi00/stockseyes-node';
+            delete pkg.scripts.prepare;
+            delete pkg.scripts.build;
+            fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
+      - name: Publish to GitHub Packages
+        run: npm publish --access public --ignore-scripts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
