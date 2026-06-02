@@ -1,11 +1,15 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import com.vanniktech.maven.publish.SonatypeHost
+
 plugins {
     kotlin("jvm") version "1.9.25"
     kotlin("plugin.serialization") version "1.9.25"
     `java-library`
-    `maven-publish`
+    id("com.vanniktech.maven.publish") version "0.29.0"
+    signing
 }
 
-group = "com.stockseyes"
+group = "io.github.stockseyes"
 version = "0.1.0"
 
 repositories {
@@ -13,10 +17,8 @@ repositories {
 }
 
 dependencies {
-    // Sole runtime dependency — Kotlin has no built-in JSON parser.
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
-    // Test
     testImplementation(kotlin("test"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
 }
@@ -24,11 +26,9 @@ dependencies {
 java {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
-    withSourcesJar()
-    withJavadocJar()
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         jvmTarget = "11"
     }
@@ -38,48 +38,43 @@ tasks.test {
     useJUnitPlatform()
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
 
-            pom {
-                name.set("stockseyes")
-                description.set(
-                    "Official Stockseyes SDK for Kotlin/JVM — real-time Indian stock market " +
-                    "(NSE/BSE) quotes, instrument search, and market data via RapidAPI."
-                )
-                url.set("https://github.com/stockseyes/stockseyes-package/tree/main/kotlin#readme")
+    signAllPublications()
 
-                licenses {
-                    license {
-                        name.set("MIT")
-                        url.set("https://opensource.org/licenses/MIT")
-                    }
-                }
+    coordinates(
+        groupId = "io.github.stockseyes",
+        artifactId = "stockseyes",
+        version = version.toString()
+    )
 
-                developers {
-                    developer {
-                        name.set("Tushar Singhal")
-                    }
-                }
+    pom {
+        name.set("stockseyes")
+        description.set(
+            "Official Stockseyes SDK for Kotlin/JVM — real-time Indian stock market " +
+            "(NSE/BSE) quotes, instrument search, and market data via RapidAPI."
+        )
+        url.set("https://github.com/stockseyes/stockseyes-package/tree/main/kotlin#readme")
 
-                scm {
-                    url.set("https://github.com/stockseyes/stockseyes-package")
-                    connection.set("scm:git:git://github.com/stockseyes/stockseyes-package.git")
-                }
+        licenses {
+            license {
+                name.set("MIT")
+                url.set("https://opensource.org/licenses/MIT")
             }
         }
-    }
-    repositories {
-        maven {
-            val releasesRepoUrl = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-            val snapshotsRepoUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
-            credentials {
-                username = System.getenv("MAVEN_USERNAME") ?: ""
-                password = System.getenv("MAVEN_PASSWORD") ?: ""
+
+        developers {
+            developer {
+                id.set("tusharsinghal")
+                name.set("Tushar Singhal") 
             }
+        }
+
+        scm {
+            url.set("https://github.com/stockseyes/stockseyes-package")
+            connection.set("scm:git:git://github.com/stockseyes/stockseyes-package.git")
+            developerConnection.set("scm:git:ssh://github.com/stockseyes/stockseyes-package.git")
         }
     }
 }

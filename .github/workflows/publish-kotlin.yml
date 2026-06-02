@@ -31,35 +31,47 @@ jobs:
           java-version: '17'
           distribution: 'zulu'
 
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('kotlin/**/*.gradle.kts', 'kotlin/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
       - name: Configure git
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-      - name: Set version
+      - name: Bump version in build.gradle.kts
         run: |
-          sed -i 's/^version = .*/version = "${{ github.event.inputs.version }}"/' build.gradle.kts
+          VERSION="${{ github.event.inputs.version }}"
+          sed -i "s/^version = \"[^\"]*\"/version = \"$VERSION\"/" build.gradle.kts
+          grep '^version = ' build.gradle.kts
 
       - name: Make gradlew executable
         run: chmod +x gradlew
 
       - name: Run tests
-        run: ./gradlew test
+        run: ./gradlew test --no-daemon
 
-      - name: Build and Publish to Maven Central
-        run: ./gradlew publish
+      - name: Publish to Maven Central
+        run: ./gradlew publishAndReleaseToMavenCentral --no-daemon
         env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
-          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
-          SIGNING_SECRET_KEY: ${{ secrets.SIGNING_SECRET_KEY }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_SECRET_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
 
       - name: Commit, tag, and push
         run: |
           VERSION="${{ github.event.inputs.version }}"
+          BRANCH="${{ github.ref_name }}"
           git add build.gradle.kts
           git commit -m "chore(kotlin): release stockseyes v$VERSION"
           git tag "kotlin-v$VERSION"
-          git push
-          git push --tags
+          git push origin "$BRANCH"
+          git push origin "kotlin-v$VERSION"
