@@ -5,6 +5,7 @@ plugins {
     kotlin("jvm") version "1.9.25"
     kotlin("plugin.serialization") version "1.9.25"
     `java-library`
+    `maven-publish`
     id("com.vanniktech.maven.publish") version "0.29.0"
     signing
 }
@@ -75,6 +76,19 @@ mavenPublishing {
             url.set("https://github.com/stockseyes/stockseyes-package")
             connection.set("scm:git:git://github.com/stockseyes/stockseyes-package.git")
             developerConnection.set("scm:git:ssh://github.com/stockseyes/stockseyes-package.git")
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/stockseyes/stockseyes-package")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
         }
     }
 }
