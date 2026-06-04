@@ -143,6 +143,30 @@ data class SearchResult(
     )
 }
 
+/**
+ * Result entry for a single symbol in [StockEyesClient.batchQuote].
+ *
+ * Cross-SDK contract: either a successful [Quote] or a [Failure] with an
+ * error message.  Mirrors Node's `Record<string, Quote | { error: string }>`
+ * and Python's `dict[str, Quote | dict[str, str]]`, but exposed as a Kotlin
+ * sealed class so callers can use exhaustive `when` matching without
+ * unchecked casts.
+ */
+sealed class BatchQuoteEntry {
+    /** Serialise to the JSON-shaped map used across SDKs. */
+    abstract fun toMap(): Map<String, Any?>
+
+    /** A successful quote fetch for this symbol. */
+    data class Success(val quote: Quote) : BatchQuoteEntry() {
+        override fun toMap(): Map<String, Any?> = quote.toMap()
+    }
+
+    /** A failed quote fetch — the [error] message mirrors `{ "error": "..." }`. */
+    data class Failure(val error: String) : BatchQuoteEntry() {
+        override fun toMap(): Map<String, Any?> = mapOf("error" to error)
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Raw upstream (RapidAPI) response shapes
 // ---------------------------------------------------------------------------
