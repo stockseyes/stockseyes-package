@@ -28,3 +28,4 @@ kotlin/build/
 kotlin/local.properties
 kotlin/*.class
 
+.claude/settings.json
