@@ -1,0 +1,49 @@
+{
+  "symbol": "REF",
+  "interval": "1d",
+  "startTime": "2024-01-01T00:00:00.000Z",
+  "endTime": "2024-01-10T00:00:00.000Z",
+  "initialCash": 100000,
+  "metrics": {
+    "initialCash": 100000,
+    "finalEquity": 100961,
+    "totalReturnPct": 0.961,
+    "cagrPct": 47.424173,
+    "maxDrawdownPct": -2.77628,
+    "sharpe": 1.583741,
+    "sortino": 2.574152,
+    "winRatePct": 100,
+    "profitFactor": null,
+    "avgTradePct": 0.961538,
+    "totalTrades": 1,
+    "totalCommission": 0,
+    "exposurePct": 40,
+    "buyHoldReturnPct": 0,
+    "periodsPerYear": 252
+  },
+  "trades": [
+    {
+      "entryTime": "2024-01-03T00:00:00.000Z",
+      "entryPrice": 104,
+      "exitTime": "2024-01-07T00:00:00.000Z",
+      "exitPrice": 105,
+      "quantity": 961,
+      "pnl": 961,
+      "returnPct": 0.009615,
+      "barsHeld": 4,
+      "commission": 0
+    }
+  ],
+  "equityCurve": [
+    { "timestamp": "2024-01-01T00:00:00.000Z", "equity": 100000, "drawdownPct": 0 },
+    { "timestamp": "2024-01-02T00:00:00.000Z", "equity": 100000, "drawdownPct": 0 },
+    { "timestamp": "2024-01-03T00:00:00.000Z", "equity": 100000, "drawdownPct": 0 },
+    { "timestamp": "2024-01-04T00:00:00.000Z", "equity": 101922, "drawdownPct": 0 },
+    { "timestamp": "2024-01-05T00:00:00.000Z", "equity": 103844, "drawdownPct": 0 },
+    { "timestamp": "2024-01-06T00:00:00.000Z", "equity": 102883, "drawdownPct": -0.925427 },
+    { "timestamp": "2024-01-07T00:00:00.000Z", "equity": 100961, "drawdownPct": -2.77628 },
+    { "timestamp": "2024-01-08T00:00:00.000Z", "equity": 100961, "drawdownPct": -2.77628 },
+    { "timestamp": "2024-01-09T00:00:00.000Z", "equity": 100961, "drawdownPct": -2.77628 },
+    { "timestamp": "2024-01-10T00:00:00.000Z", "equity": 100961, "drawdownPct": -2.77628 }
+  ]
+}

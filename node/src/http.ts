@@ -6,7 +6,9 @@ export type StockEyesErrorCode =
   | 'not_found'
   | 'http'
   | 'network'
-  | 'timeout';
+  | 'timeout'
+  | 'candles'
+  | 'backtest';
 
 /** Error thrown for every failed request, with a machine-readable `code`. */
 export class StockEyesError extends Error {
@@ -25,7 +27,15 @@ export class StockEyesError extends Error {
 }
 
 export function isStockEyesError(error: unknown): error is StockEyesError {
-  return error instanceof StockEyesError;
+  // Duck-typed so it still recognizes errors thrown from a separately-bundled
+  // subpath (e.g. `@stockseyes/node/backtest`), where the class is a distinct copy.
+  return (
+    error instanceof StockEyesError ||
+    (typeof error === 'object' &&
+      error !== null &&
+      (error as { name?: unknown }).name === 'StockEyesError' &&
+      'code' in error)
+  );
 }
 
 function codeForStatus(status: number): StockEyesErrorCode {

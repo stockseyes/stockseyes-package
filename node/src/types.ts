@@ -100,3 +100,52 @@ export interface RawQuote {
   depth?: Record<string, unknown>;
   error?: string | null;
 }
+
+// ---- Historical candles ----
+
+/** Supported bar sizes for a candle series. */
+export type BarInterval = '1m' | '5m' | '15m' | '1h' | '1d' | '1w';
+
+/** Parameters for fetching a historical candle series. */
+export interface CandleQuery {
+  symbol: string;
+  /** Exchange, defaults to `NSE`. */
+  exchange?: string;
+  /** Bar size, defaults to `1d`. */
+  interval?: BarInterval;
+  /** Inclusive start of the range (ISO string or `Date`). */
+  from: string | Date;
+  /** Inclusive end of the range (ISO string or `Date`). */
+  to: string | Date;
+}
+
+/**
+ * Normalized OHLCV bar — the cross-SDK contract shape (see spec `Candle`).
+ * `timestamp` is a `Date` in memory; it serializes to an ISO-8601 string.
+ */
+export interface Candle {
+  timestamp: Date;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+/** Raw upstream candle (one bar). */
+export interface RawCandle {
+  timestamp: string; // ISO 8601 string
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+/** Raw upstream candle series response. */
+export interface RawCandleSeries {
+  tradingSymbol: string;
+  exchange: string;
+  interval: string;
+  candles: RawCandle[];
+}
