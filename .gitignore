@@ -21,3 +21,10 @@ __pycache__/
 
 # Claude Code local settings (skills + CLAUDE.md stay tracked)
 .claude/settings.local.json
+
+# Gradle & Kotlin
+kotlin/.gradle/
+kotlin/build/
+kotlin/local.properties
+kotlin/*.class
+

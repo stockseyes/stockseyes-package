@@ -21,9 +21,12 @@ language/platform, wrapping the Stockseyes Indian-stock (NSE/BSE) APIs on RapidA
 - **stockseyes-architecture** — the monorepo model, contract, and roadmap. Read first.
 - **stockseyes-add-endpoint** — adding/changing any endpoint or field (the contract-first flow).
 - **stockseyes-node-sdk** — conventions for code under `node/`.
-- **stockseyes-add-language-sdk** — standing up a new platform (react/python).
+- **stockseyes-python-sdk** — conventions for code under `python/`.
+- **stockseyes-kotlin-sdk** — conventions for code under `kotlin/`.
+- **stockseyes-add-language-sdk** — standing up a new platform (react/python/kotlin).
 
 ## Key commands
 
 - Contract gate (repo root): `npm run check:contract`
 - Node package (from `node/`): `npm run type-check`, `npm run lint`, `npm test`, `npm run build`, `npm run size`
+- Kotlin package (from `kotlin/`): `.\gradlew build`, `.\gradlew test`
