@@ -9,8 +9,10 @@ info:
     validated against these schemas in CI to prevent cross-language drift.
 
 
-    Note: a historical-candles endpoint is planned but not yet implemented, so it is
-    intentionally omitted from this spec.
+    The historical-candles endpoint (`/rapidapi/stock/candles`) is defined here as the cross-SDK
+    contract. Its upstream RapidAPI route is not live yet, so SDKs currently back `candles` with a
+    deterministic mock data source — only the data source is mocked; the `Candle` shape, the
+    normalizer, and the client method are real and final.
   license:
     name: MIT
 servers:
@@ -46,6 +48,45 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/RawQuote' }
+
+  /rapidapi/stock/candles:
+    get:
+      operationId: getCandles
+      summary: >
+        Get historical OHLC candles for an instrument over a date range. The upstream RapidAPI
+        route is not live yet, so SDKs back this with a deterministic mock data source for now.
+      parameters:
+        - name: tradingSymbol
+          in: query
+          required: true
+          schema: { type: string }
+          example: RELIANCE
+        - name: exchange
+          in: query
+          required: false
+          schema: { type: string, default: NSE }
+          example: NSE
+        - name: interval
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [1m, 5m, 15m, 1h, 1d, 1w]
+            default: 1d
+        - name: from
+          in: query
+          required: true
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          required: true
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Raw historical candle series.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RawCandleSeries' }
 
   /public/instruments/search:
     post:
@@ -84,6 +125,28 @@ components:
         high: { type: number }
         low: { type: number }
         close: { type: number }
+
+    RawCandle:
+      type: object
+      required: [timestamp, open, high, low, close, volume]
+      properties:
+        timestamp: { type: string, format: date-time }
+        open: { type: number }
+        high: { type: number }
+        low: { type: number }
+        close: { type: number }
+        volume: { type: number }
+
+    RawCandleSeries:
+      type: object
+      required: [tradingSymbol, exchange, interval, candles]
+      properties:
+        tradingSymbol: { type: string }
+        exchange: { type: string }
+        interval: { type: string }
+        candles:
+          type: array
+          items: { $ref: '#/components/schemas/RawCandle' }
 
     RawQuote:
       type: object
@@ -229,3 +292,123 @@ components:
         results:
           type: array
           items: { $ref: '#/components/schemas/Instrument' }
+
+    Candle:
+      type: object
+      additionalProperties: false
+      required: [timestamp, open, high, low, close, volume]
+      properties:
+        timestamp: { type: string, format: date-time }
+        open: { type: number }
+        high: { type: number }
+        low: { type: number }
+        close: { type: number }
+        volume: { type: number }
+
+    # ---------- Backtest output (cross-SDK contract) ----------
+    # Client-computed, not a wire response. Every SDK's serialized backtest result must
+    # validate here and (for the golden fixture below) match value-for-value.
+    #
+    # Determinism convention (so Node / Python / Kotlin agree): toJSON() rounds money/equity
+    # to 4 decimal places and percentages/ratios to 6. `profitFactor` is null when there are
+    # no losing trades. Dates serialize to ISO-8601 strings.
+    #
+    # Golden reference run (fixtures/backtest.input.json → fixtures/backtest.normalized.json):
+    #   strategy  = SMA(2)/SMA(3) crossover — buy (all-in) when sma2 > sma3 while flat,
+    #               close when sma2 < sma3 while in a position
+    #   config    = initialCash 100000, fillModel 'close', commission 0, slippage 0,
+    #               positionSizing percent-equity 1.0, periodsPerYear 252 (daily)
+    BacktestMetrics:
+      type: object
+      additionalProperties: false
+      required:
+        - initialCash
+        - finalEquity
+        - totalReturnPct
+        - cagrPct
+        - maxDrawdownPct
+        - sharpe
+        - sortino
+        - winRatePct
+        - profitFactor
+        - avgTradePct
+        - totalTrades
+        - totalCommission
+        - exposurePct
+        - buyHoldReturnPct
+        - periodsPerYear
+      properties:
+        initialCash: { type: number }
+        finalEquity: { type: number }
+        totalReturnPct: { type: number }
+        cagrPct: { type: number }
+        maxDrawdownPct: { type: number }
+        sharpe: { type: number }
+        sortino: { type: number }
+        winRatePct: { type: number }
+        profitFactor: { type: [number, 'null'] }
+        avgTradePct: { type: number }
+        totalTrades: { type: number }
+        totalCommission: { type: number }
+        exposurePct: { type: number }
+        buyHoldReturnPct: { type: number }
+        periodsPerYear: { type: number }
+
+    BacktestTrade:
+      type: object
+      additionalProperties: false
+      required:
+        - entryTime
+        - entryPrice
+        - exitTime
+        - exitPrice
+        - quantity
+        - pnl
+        - returnPct
+        - barsHeld
+        - commission
+      properties:
+        entryTime: { type: string, format: date-time }
+        entryPrice: { type: number }
+        exitTime: { type: string, format: date-time }
+        exitPrice: { type: number }
+        quantity: { type: number }
+        pnl: { type: number }
+        returnPct: { type: number }
+        barsHeld: { type: number }
+        commission: { type: number }
+
+    BacktestEquityPoint:
+      type: object
+      additionalProperties: false
+      required: [timestamp, equity, drawdownPct]
+      properties:
+        timestamp: { type: string, format: date-time }
+        equity: { type: number }
+        drawdownPct: { type: number }
+
+    BacktestResult:
+      type: object
+      additionalProperties: false
+      required:
+        - symbol
+        - interval
+        - startTime
+        - endTime
+        - initialCash
+        - metrics
+        - trades
+        - equityCurve
+      properties:
+        symbol: { type: string }
+        interval: { type: string }
+        startTime: { type: string, format: date-time }
+        endTime: { type: string, format: date-time }
+        initialCash: { type: number }
+        metrics: { $ref: '#/components/schemas/BacktestMetrics' }
+        trades:
+          type: array
+          items: { $ref: '#/components/schemas/BacktestTrade' }
+        equityCurve:
+          type: array
+          items: { $ref: '#/components/schemas/BacktestEquityPoint' }

@@ -21,6 +21,10 @@ const FIXTURE_SCHEMAS = {
   'quote.normalized.json': 'Quote',
   'search.json': 'RawSearchResponse',
   'search.normalized.json': 'SearchResult',
+  'candle.json': 'RawCandle',
+  'candle.normalized.json': 'Candle',
+  'backtest.input.json': 'RawCandleSeries',
+  'backtest.normalized.json': 'BacktestResult',
 };
 
 function fail(msg) {

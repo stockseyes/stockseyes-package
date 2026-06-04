@@ -1,5 +1,6 @@
 import { getQuote, batchQuote } from './quote';
 import { searchInstruments } from './search';
+import { getCandles } from './candles';
 import {
   StockEyesConfig,
   HttpConfig,
@@ -7,6 +8,8 @@ import {
   SearchResult,
   BatchQuoteResult,
   SearchOptions,
+  Candle,
+  CandleQuery,
 } from './types';
 
 const DEFAULT_HOST =
@@ -17,6 +20,11 @@ export interface StockEyesClient {
   quote(symbol: string, exchange?: string): Promise<Quote>;
   batchQuote(symbols: string[], exchange?: string): Promise<BatchQuoteResult>;
   search(term: string, options?: SearchOptions): Promise<SearchResult>;
+  /**
+   * Fetch a historical OHLC candle series for an instrument over a date range.
+   * Backed by a deterministic mock data source until the upstream route ships.
+   */
+  candles(query: CandleQuery): Promise<Candle[]>;
 }
 
 export function useStockEyes(config: StockEyesConfig): StockEyesClient {
@@ -35,6 +43,7 @@ export function useStockEyes(config: StockEyesConfig): StockEyesClient {
     batchQuote: (symbols, exchange = 'NSE') =>
       batchQuote(httpConfig, symbols, exchange),
     search: (term, options) => searchInstruments(httpConfig, term, options),
+    candles: (query) => getCandles(httpConfig, query),
   };
 }
 
