@@ -67,18 +67,18 @@ internal fun batchQuote(
     config: HttpConfig,
     symbols: List<String>,
     exchange: String = "NSE",
-): Map<String, Any> {
+): Map<String, BatchQuoteEntry> {
     val unique = symbols.map { it.uppercase() }.distinct()
     if (unique.isEmpty()) return emptyMap()
 
     val pool: ExecutorService = Executors.newFixedThreadPool(minOf(unique.size, 10))
     try {
         val futures = unique.map { symbol ->
-            pool.submit(Callable {
+            pool.submit(Callable<Pair<String, BatchQuoteEntry>> {
                 try {
-                    symbol to (getQuote(config, symbol, exchange) as Any)
+                    symbol to BatchQuoteEntry.Success(getQuote(config, symbol, exchange))
                 } catch (e: Exception) {
-                    symbol to mapOf("error" to (e.message ?: "Unknown error"))
+                    symbol to BatchQuoteEntry.Failure(e.message ?: "Unknown error")
                 }
             })
         }

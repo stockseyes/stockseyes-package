@@ -9,20 +9,20 @@ Conforms to the same cross-SDK contract as `@stockseyes/node` and Python `stocks
 ### Gradle (Kotlin DSL)
 
 ```kotlin
-implementation("com.stockseyes:stockseyes:0.1.0")
+implementation("io.github.stockseyes:stockseyes:0.1.0")
 ```
 
 ### Gradle (Groovy DSL)
 
 ```groovy
-implementation 'com.stockseyes:stockseyes:0.1.0'
+implementation 'io.github.stockseyes:stockseyes:0.1.0'
 ```
 
 ### Maven
 
 ```xml
 <dependency>
-    <groupId>com.stockseyes</groupId>
+    <groupId>io.github.stockseyes</groupId>
     <artifactId>stockseyes</artifactId>
     <version>0.1.0</version>
 </dependency>
@@ -76,17 +76,18 @@ val q = client.quote("TCS", "NSE")
 //       volume, marketCap, timestamp, currency, exchange)
 ```
 
-### `client.batchQuote(symbols, exchange = "NSE") → Map<String, Any>`
+### `client.batchQuote(symbols, exchange = "NSE") → Map<String, BatchQuoteEntry>`
 
-Fetches many quotes in parallel (using a thread pool). Per-symbol failures are returned as `Map<String, Any>` maps with an `"error"` field, not raised.
+Fetches many quotes in parallel (using a thread pool). Per-symbol failures are returned as `BatchQuoteEntry.Failure` entries rather than raised, so the call as a whole never throws on partial failure.
 
 ```kotlin
+import com.stockseyes.BatchQuoteEntry
+
 val batch = client.batchQuote(listOf("RELIANCE", "TCS", "INFY"))
-for ((symbol, data) in batch) {
-    if (data is Map<*, *> && "error" in data) {
-        println("$symbol: ${data["error"]}")
-    } else if (data is Quote) {
-        println("$symbol: ₹${data.price}")
+for ((symbol, entry) in batch) {
+    when (entry) {
+        is BatchQuoteEntry.Success -> println("$symbol: ₹${entry.quote.price}")
+        is BatchQuoteEntry.Failure -> println("$symbol: ${entry.error}")
     }
 }
 ```

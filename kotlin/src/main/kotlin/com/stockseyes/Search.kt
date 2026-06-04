@@ -1,5 +1,11 @@
 package com.stockseyes
 
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.putJsonObject
+
 /**
  * Map a raw `instrument_type` string to the normalised [InstrumentType].
  */
@@ -34,29 +40,20 @@ internal fun searchInstruments(
     term: String,
     options: SearchOptions = SearchOptions(),
 ): SearchResult {
-    val requestBody = json.encodeToString(
-        kotlinx.serialization.json.JsonObject.serializer(),
-        kotlinx.serialization.json.buildJsonObject {
-            put("filterRequest", kotlinx.serialization.json.buildJsonObject {
-                put("exchange", kotlinx.serialization.json.buildJsonArray {
-                    add(kotlinx.serialization.json.JsonPrimitive("NSE"))
-                })
-                put("instrument_type", kotlinx.serialization.json.buildJsonArray {
-                    add(kotlinx.serialization.json.JsonPrimitive("EQ"))
-                })
-                put("segment", kotlinx.serialization.json.buildJsonArray {
-                    add(kotlinx.serialization.json.JsonPrimitive("NSE"))
-                })
-            })
-            put("searchPatterns", kotlinx.serialization.json.buildJsonObject {
-                put("tradingsymbol", kotlinx.serialization.json.JsonPrimitive(term))
-            })
-            put("paginationDetails", kotlinx.serialization.json.buildJsonObject {
-                put("limit", kotlinx.serialization.json.JsonPrimitive(options.limit))
-                put("offset", kotlinx.serialization.json.JsonPrimitive(options.offset))
-            })
+    val requestBody = buildJsonObject {
+        putJsonObject("filterRequest") {
+            putJsonArray("exchange") { add("NSE") }
+            putJsonArray("instrument_type") { add("EQ") }
+            putJsonArray("segment") { add("NSE") }
         }
-    )
+        putJsonObject("searchPatterns") {
+            put("tradingsymbol", term)
+        }
+        putJsonObject("paginationDetails") {
+            put("limit", options.limit)
+            put("offset", options.offset)
+        }
+    }.toString()
 
     val body = httpPost(config, "/public/instruments/search", requestBody)
     val raw = json.decodeFromString<RawSearchResponse>(body)

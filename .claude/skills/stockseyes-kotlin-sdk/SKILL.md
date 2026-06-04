@@ -10,7 +10,8 @@ description: Implementation conventions for the stockseyes Kotlin/JVM package. U
 ## Public surface
 
 - The only entry point is the factory **`useStockEyes(config)`**, returning a `StockEyesClient`. Do not require users to instantiate the client directly.
-- Export public classes (`StockEyesConfig`, `SearchOptions`, `Quote`, `Instrument`, `SearchResult`, `StockEyesErrorCode`, `StockEyesError`, `isStockEyesError`, `InstrumentType`) from the `com.stockseyes` package.
+- Export public classes (`StockEyesConfig`, `SearchOptions`, `Quote`, `Instrument`, `SearchResult`, `BatchQuoteEntry`, `StockEyesErrorCode`, `StockEyesError`, `isStockEyesError`, `InstrumentType`) from the `com.stockseyes` package.
+- `batchQuote` returns `Map<String, BatchQuoteEntry>` where `BatchQuoteEntry` is a sealed class with `Success(quote)` and `Failure(error)` cases — gives callers exhaustive `when` matching without unchecked casts.
 
 ## Config
 
@@ -45,7 +46,7 @@ description: Implementation conventions for the stockseyes Kotlin/JVM package. U
 ## Packaging
 
 - Built via Gradle Kotlin DSL targeting **JDK 11**.
-- Published as Maven artifact `com.stockseyes:stockseyes` using `maven-publish` plugin.
+- Published as Maven artifact `io.github.stockseyes:stockseyes` via the `com.vanniktech.maven.publish` plugin (Sonatype Central Portal). The `io.github.<gh-org>` namespace is used because we don't own the `stockseyes.com` domain — never change this to `com.stockseyes` without going through Sonatype namespace verification.
 
 ## Testing
 

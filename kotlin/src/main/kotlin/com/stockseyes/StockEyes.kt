@@ -28,9 +28,10 @@ class StockEyesClient internal constructor(private val config: HttpConfig) {
      *
      * @param symbols List of trading symbols.
      * @param exchange Exchange code. Defaults to `"NSE"`.
-     * @return A map of symbol → [Quote] or `{ "error": "..." }`.
+     * @return A map of symbol → [BatchQuoteEntry] (sealed: [BatchQuoteEntry.Success] or
+     *         [BatchQuoteEntry.Failure]) for exhaustive `when` matching.
      */
-    fun batchQuote(symbols: List<String>, exchange: String = "NSE"): Map<String, Any> =
+    fun batchQuote(symbols: List<String>, exchange: String = "NSE"): Map<String, BatchQuoteEntry> =
         batchQuote(config, symbols, exchange)
 
     /**
